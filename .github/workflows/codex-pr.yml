@@ -86,8 +86,8 @@ jobs:
 
           const payload = files.map(x => `--- ${x.file} ---\n${x.content}`).join("\n\n");
 
-          const resp = await client.responses.create({
-  model: "gpt-4.1-mini",
+const resp = await client.responses.create({
+  model: "gpt-5.2-mini",
   input: prompt + "\n\n" + payload
 });
 
