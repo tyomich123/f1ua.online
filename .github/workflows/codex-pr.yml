@@ -1,0 +1,127 @@
+name: Codex PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Що треба змінити в репозиторії (коротко і конкретно)"
+        required: true
+        default: "Онови текст на головній сторінці"
+      base_branch:
+        description: "Гілка, в яку робити PR"
+        required: true
+        default: "main"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  codex_pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.base_branch }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install OpenAI SDK
+        run: npm i openai@latest
+
+      - name: Run Codex change
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TASK: ${{ inputs.task }}
+        run: |
+          node - <<'NODE'
+          import fs from "fs";
+          import path from "path";
+          import OpenAI from "openai";
+
+          const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+          const task = process.env.TASK;
+
+          // Обмежимося типово важливими файлами (під твій статичний фронт/Strapi repo)
+          const allow = new Set([
+            "index.html",
+            "css/style.css",
+            "js/app.js",
+            "js/pages.js",
+            "js/router.js",
+            "js/api.js",
+            "js/config.js",
+            "README.md"
+          ]);
+
+          function readFileSafe(p) {
+            try { return fs.readFileSync(p, "utf8"); } catch { return null; }
+          }
+
+          const files = [];
+          for (const f of allow) {
+            if (fs.existsSync(f) && fs.statSync(f).isFile()) {
+              files.push({ file: f, content: readFileSafe(f) });
+            }
+          }
+
+          if (files.length === 0) {
+            console.error("No allowed files found in repo root. Adjust allowlist in workflow.");
+            process.exit(1);
+          }
+
+          const prompt = `
+          Ти робиш зміни в репозиторії.
+          Завдання: ${task}
+
+          Ось поточні файли (шлях + контент). Поверни JSON масив у форматі:
+          [{"file":"path","content":"NEW_CONTENT"}]
+          Змінюй лише файли з цього списку. Не додавай зайвих пояснень, лише JSON.
+          `;
+
+          const payload = files.map(x => `--- ${x.file} ---\n${x.content}`).join("\n\n");
+
+          const resp = await client.responses.create({
+            model: "gpt-5.2-mini",
+            input: prompt + "\n\n" + payload
+          });
+
+          const text = resp.output_text?.trim() || "";
+          let updates;
+          try {
+            updates = JSON.parse(text);
+          } catch (e) {
+            console.error("Model did not return valid JSON:\n", text);
+            process.exit(1);
+          }
+
+          for (const u of updates) {
+            if (!u.file || typeof u.content !== "string") continue;
+            if (!allow.has(u.file)) continue;
+            fs.writeFileSync(u.file, u.content, "utf8");
+            console.log("Updated:", u.file);
+          }
+          NODE
+
+      - name: Create PR branch
+        run: |
+          BR="codex/${{ github.run_id }}"
+          git checkout -b "$BR"
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+          git add -A
+          git commit -m "Codex update: ${{ inputs.task }}" || echo "No changes to commit"
+          git push -u origin "$BR"
+
+      - name: Open Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: codex/${{ github.run_id }}
+          base: ${{ inputs.base_branch }}
+          title: "Codex: ${{ inputs.task }}"
+          body: "Автоматичні зміни від Codex по задачі: `${{ inputs.task }}`"
