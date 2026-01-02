@@ -1,0 +1,59 @@
+{
+  "kind": "collectionType",
+  "collectionName": "videos",
+  "info": {
+    "singularName": "video",
+    "pluralName": "videos",
+    "displayName": "Video"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title"
+    },
+    "description": {
+      "type": "text"
+    },
+    "duration": {
+      "type": "string",
+      "default": "Example: \"8:14\"",
+      "required": false,
+      "unique": false,
+      "regex": "^\\d{1,2}:\\d{2}$"
+    },
+    "videoUrl": {
+      "type": "string"
+    },
+    "publishedAte": {
+      "type": "datetime"
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": [
+        "highlights",
+        "interviews",
+        "must-watch",
+        "featured",
+        "technical"
+      ]
+    },
+    "relatedDrivers": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::driver.driver"
+    },
+    "races": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::race.race"
+    }
+  }
+}

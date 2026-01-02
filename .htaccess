@@ -1,0 +1,23 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # Проксі ТІЛЬКИ для Strapi admin і API
+    RewriteRule ^admin(.*)$ http://127.0.0.1:1337/admin$1 [P,L]
+    RewriteRule ^api(.*)$ http://127.0.0.1:1337/api$1 [P,L]
+    RewriteRule ^uploads(.*)$ http://127.0.0.1:1337/uploads$1 [P,L]
+    RewriteRule ^_health(.*)$ http://127.0.0.1:1337/_health$1 [P,L]
+    RewriteRule ^i18n(.*)$ http://127.0.0.1:1337/i18n$1 [P,L]
+    RewriteRule ^users-permissions(.*)$ http://127.0.0.1:1337/users-permissions$1 [P,L]
+    RewriteRule ^content-manager(.*)$ http://127.0.0.1:1337/content-manager$1 [P,L]
+    RewriteRule ^content-type-builder(.*)$ http://127.0.0.1:1337/content-type-builder$1 [P,L]
+    
+    # WebSocket для Strapi admin
+    RewriteCond %{HTTP:Upgrade} =websocket [NC]
+    RewriteCond %{REQUEST_URI} ^/(admin|api|content-manager|content-type-builder) [NC]
+    RewriteRule /(.*)$ ws://127.0.0.1:1337/$1 [P,L]
+    
+    # SPA - всі інші запити на index.html
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.html [L]

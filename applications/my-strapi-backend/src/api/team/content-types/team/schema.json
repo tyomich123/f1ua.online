@@ -1,0 +1,70 @@
+{
+  "kind": "collectionType",
+  "collectionName": "teams",
+  "info": {
+    "singularName": "team",
+    "pluralName": "teams",
+    "displayName": "Team"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "name"
+    },
+    "fullName": {
+      "type": "string"
+    },
+    "base": {
+      "type": "string",
+      "default": "Milton Keynes, UK"
+    },
+    "teamChief": {
+      "type": "string"
+    },
+    "technicalChief": {
+      "type": "string"
+    },
+    "powerUnit": {
+      "type": "string"
+    },
+    "chassis": {
+      "type": "string"
+    },
+    "firstTeamEntry": {
+      "type": "string",
+      "default": "2005"
+    },
+    "color": {
+      "type": "string",
+      "regex": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+    },
+    "description": {
+      "type": "richtext"
+    },
+    "driver": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::driver.driver",
+      "mappedBy": "team"
+    },
+    "drivers": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::driver.driver"
+    },
+    "standing": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::standing.standing",
+      "mappedBy": "team"
+    }
+  }
+}

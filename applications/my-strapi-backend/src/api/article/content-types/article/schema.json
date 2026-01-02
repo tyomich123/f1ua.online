@@ -1,0 +1,68 @@
+{
+  "kind": "collectionType",
+  "collectionName": "articles",
+  "info": {
+    "singularName": "article",
+    "pluralName": "articles",
+    "displayName": "Article"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title"
+    },
+    "excerpt": {
+      "type": "text"
+    },
+    "author": {
+      "type": "string"
+    },
+    "content": {
+      "type": "richtext"
+    },
+    "publishedAte": {
+      "type": "datetime"
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": [
+        "news",
+        "analysis",
+        "technical",
+        "lifestyle",
+        "exclusive",
+        "f1-unlocked",
+        "f2",
+        "f3"
+      ]
+    },
+    "featuredImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "drivers": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::driver.driver"
+    },
+    "teams": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::team.team"
+    }
+  }
+}

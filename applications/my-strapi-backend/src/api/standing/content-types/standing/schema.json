@@ -1,0 +1,58 @@
+{
+  "kind": "collectionType",
+  "collectionName": "standings",
+  "info": {
+    "singularName": "standing",
+    "pluralName": "standings",
+    "displayName": "Standing"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "season": {
+      "type": "integer",
+      "required": true,
+      "min": 2000,
+      "max": 2100
+    },
+    "position": {
+      "type": "integer",
+      "min": 1
+    },
+    "points": {
+      "type": "integer",
+      "min": 0
+    },
+    "wins": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "podiums": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "driver",
+        "constructor"
+      ]
+    },
+    "driver": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::driver.driver",
+      "inversedBy": "standing"
+    },
+    "team": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::team.team",
+      "inversedBy": "standing"
+    }
+  }
+}
