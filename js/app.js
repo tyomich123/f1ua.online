@@ -1,22 +1,33 @@
-// Ініціалізація додатку
+// Ініціалізація застосунку
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('F1 Ukraine App Loading...');
-    console.log('API URL:', CONFIG.API_URL);
+  try {
+    if (typeof router === 'undefined') {
+      console.error('router is not defined. Check script loading order in index.html');
+      return;
+    }
 
-    // Реєстрація маршрутів
-    router.register('/', Pages.home);
-    router.register('/teams', Pages.teams);
-    router.register('/team/:slug', Pages.team);
-    router.register('/drivers', Pages.drivers);
-    router.register('/driver/:slug', Pages.driver);
-    router.register('/standings', Pages.standings);
-    router.register('/news', Pages.news);
-    router.register('/article/:slug', Pages.article);
-    router.register('/404', Pages.notFound);
+    // Для history-router (URL без #)
+    if (typeof router.init === 'function') {
+      router.init();
+      return;
+    }
 
-    // Завантажити початковий маршрут
-    const path = window.location.pathname;
-    router.handleRoute(path);
+    // Фолбек на старий роутер (якщо в тебе ще router.render)
+    if (typeof router.render === 'function') {
+      router.render(location.pathname);
+      return;
+    }
 
-    console.log('F1 Ukraine App Ready!');
+    // Фолбек на resolve()
+    if (typeof router.resolve === 'function') {
+      router.resolve();
+      return;
+    }
+
+    console.error('router has no init/render/resolve method');
+  } catch (e) {
+    console.error('App init error:', e);
+    const app = document.getElementById('app');
+    if (app) app.innerHTML = `<div class="error">Помилка ініціалізації застосунку</div>`;
+  }
 });

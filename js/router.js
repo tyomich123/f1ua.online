@@ -1,59 +1,82 @@
-// Простий роутер для SPA
 const router = {
-    routes: {},
-    currentRoute: null,
+  routes: {
+    '/': 'home',
+    '/teams': 'teams',
+    '/team/:slug': 'team',
+    '/drivers': 'drivers',
+    '/driver/:slug': 'driver',
+    '/standings': 'standings',
+    '/telemetry': 'telemetry',
+    '/historical': 'historical',
+    '/news': 'news',
+    '/article/:slug': 'article'
+  },
 
-    // Зареєструвати маршрут
-    register(path, handler) {
-        this.routes[path] = handler;
-    },
+  init() {
+    // перехоплюємо кліки по внутрішніх лінках <a href="/...">
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('a');
+      if (!a) return;
 
-    // Перейти на маршрут
-    navigate(path, params = {}) {
-        window.history.pushState({ path, params }, '', path);
-        this.handleRoute(path, params);
-    },
+      const href = a.getAttribute('href');
+      if (!href) return;
 
-    // Обробити маршрут
-    handleRoute(path, params = {}) {
-        this.currentRoute = path;
-        
-        // Оновити активне посилання в навігації
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.classList.remove('active');
-        });
+      // зовнішні/якорі/файли не чіпаємо
+      if (href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('#')) return;
 
-        // Знайти обробник маршруту
-        let handler = this.routes[path];
-        
-        // Динамічні маршрути
-        if (!handler) {
-            if (path.startsWith('/team/')) {
-                handler = this.routes['/team/:slug'];
-                params.slug = path.split('/')[2];
-            } else if (path.startsWith('/driver/')) {
-                handler = this.routes['/driver/:slug'];
-                params.slug = path.split('/')[2];
-            } else if (path.startsWith('/article/')) {
-                handler = this.routes['/article/:slug'];
-                params.slug = path.split('/')[2];
-            }
-        }
+      // тільки внутрішні
+      if (href.startsWith('/')) {
+        e.preventDefault();
+        this.navigate(href);
+      }
+    });
 
-        // Виконати обробник або показати 404
-        if (handler) {
-            handler(params);
-        } else {
-            this.routes['/404']();
-        }
+    window.addEventListener('popstate', () => this.resolve());
+    this.resolve();
+  },
 
-        // Прокрутити вгору
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+  navigate(path) {
+    history.pushState({}, '', path);
+    this.resolve();
+  },
+
+  // матчинг простий: /team/:slug
+  match(path) {
+    const clean = path.split('?')[0].replace(/\/+$/, '') || '/';
+
+    for (const [pattern, page] of Object.entries(this.routes)) {
+      const keys = [];
+      const regex = new RegExp('^' + pattern
+        .replace(/\/+$/, '')
+        .replace(/\//g, '\\/')
+        .replace(/:([A-Za-z0-9_]+)/g, (_, k) => {
+          keys.push(k);
+          return '([^\\/]+)';
+        }) + '$'
+      );
+
+      const m = clean.match(regex);
+      if (m) {
+        const params = {};
+        keys.forEach((k, i) => params[k] = decodeURIComponent(m[i + 1]));
+        return { page, params };
+      }
     }
-};
 
-// Обробка кнопок браузера назад/вперед
-window.addEventListener('popstate', (e) => {
-    const state = e.state || { path: '/', params: {} };
-    router.handleRoute(state.path, state.params);
-});
+    return { page: 'home', params: {} };
+  },
+
+  async resolve() {
+    const { page, params } = this.match(location.pathname);
+
+    try {
+      if (!Pages[page]) throw new Error(`Unknown page: ${page}`);
+      await Pages[page](params);
+      window.scrollTo(0, 0);
+    } catch (e) {
+      console.error('Route error:', e);
+      const app = document.getElementById('app');
+      if (app) app.innerHTML = `<div class="error">Помилка завантаження сторінки</div>`;
+    }
+  }
+};

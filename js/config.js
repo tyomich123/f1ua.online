@@ -1,26 +1,8 @@
-// Конфігурація сайту
 const CONFIG = {
-    API_URL: 'https://f1ua.online/api',
-    CURRENT_SEASON: 2025,
-    SITE_NAME: 'F1 Ukraine',
-    SITE_DESCRIPTION: 'Неофіційний україномовний сайт про Формулу 1'
-};
+  // IMPORTANT:
+  // Тепер фронт ходить на /api на цьому ж домені (f1ua.online),
+  // а nginx/apache проксить /api у Strapi (127.0.0.1:1337).
+  API_URL: '/api',
 
-// Кольори команд
-const TEAM_COLORS = {
-    'McLaren': '#FF8000',
-    'Mercedes': '#00D2BE',
-    'Red Bull Racing': '#0600EF',
-    'Ferrari': '#DC0000',
-    'Aston Martin': '#006F62',
-    'Alpine': '#0090FF',
-    'Williams': '#005AFF',
-    'Racing Bulls': '#6C98FF',
-    'Kick Sauber': '#01C00E',
-    'Haas F1 Team': '#B6BABD'
+  CURRENT_SEASON: 2025
 };
-
-// Отримати колір команди
-function getTeamColor(teamName) {
-    return TEAM_COLORS[teamName] || '#E10600';
-}
